@@ -8,8 +8,17 @@ var box1, pig1;
 var backgroundImg,platform;
 var bird, slingShot;
 
+var gameState = "on_sling"
+
+var score = 0
+
+bird_arr = []
 function preload() {
     backgroundImg = loadImage("sprites/bg.png");
+    flying = loadSound("sounds_bird_flying.mp3")
+    select = loadSound("sounds_bird_select.mp3")
+    snort = loadSound("sounds_pig_snort.mp3")
+    //getBackgroundImage();
 }
 
 function setup(){
@@ -35,27 +44,50 @@ function setup(){
     box5 = new Box(960,160,90,90);
     log4 = new Log(910,120,150, PI/7);
     log5 = new Log(1020,120,150, -PI/7);
-
+    
     console.log(windowHeight,windowWidth)
 
     bird = new Bird(100,50);
+    bird2 = new Bird(75, 170)
+    bird3 = new Bird(50, 170)
+
+    bird_arr.push(bird3)
+    bird_arr.push(bird2)
+    bird_arr.push(bird)
+
+    wall1 = new Ground(10,100,10,200)
 
     //log6 = new Log(230,180,80, PI/2);
     slingshot = new SlingShot(bird.body,{x:200, y:50});
 }
 
 function draw(){
-    background(backgroundImg);
+
+
+
+    if(backgroundImg){
+        background(backgroundImg);
+        noStroke()
+        textSize(35)
+        fill("yellow")
+        text("Score : " + score, windowWidth - 300, 50)
+    }
+
+    
     Engine.update(engine);
     strokeWeight(1);
     box1.display();
     box2.display();
     pig1.display();
+
+    pig1.score();
+
     log1.display();
 
     box3.display();
     box4.display();
     pig3.display();
+    pig3.score()
     log3.display();
 
     box5.display();
@@ -67,25 +99,71 @@ function draw(){
     ground.display();
     //log6.display();
     slingshot.display();    
-
-
-    console.log(pig1.body.speed +","+  pig3.body.speed)
+    bird2.display()
+    bird3.display()
+    wall1.display()
 }
 
+
 function mouseDragged(){
-    Matter.Body.setPosition(bird.body, {x: mouseX , y: mouseY});
+
+    if(gameState === 'on_sling'){
+    Matter.Body.setPosition(bird_arr[bird_arr.length - 1].body, {x: mouseX , y: mouseY});
+    }
 }
 
 
 function mouseReleased(){
-    slingshot.fly();
+    if (gameState === "on_sling"){
+        slingshot.fly();
+        gameState = "no_sling"
+        flying.play()
+    }
+
 }
 
 function keyPressed(){
 
     if(keyCode === 32){
 
-        Matter.Body.setPosition(bird.body, {x:100, y: 50});
-        slingshot.attach(bird.body)
+        if(bird_arr.length > 0){
+            bird_arr[bird_arr.length - 1].trajectory = []
+            bird_arr.pop()
+
+            select.play()
+
+            Matter.Body.setPosition(bird_arr[bird_arr.length - 1].body, {x:100, y: 50});
+            slingshot.attach(bird_arr[bird_arr.length - 1])
+
+            gameState = "on_sling"
+       }
+
+        
     }
+}
+
+async function getBackgroundImage(){
+
+    var response = await fetch("https://worldtimeapi.org/api/timezone/Asia/Tokyo")
+
+    var responseJSON = await response.json();
+
+    var datetime = responseJSON.datetime
+    var hour = datetime.slice(11,13)
+
+    console.log(datetime)
+    console.log(hour)
+
+
+    if(hour >= 06 && hour <= 19){
+
+        bg = "sprites/bg.png"
+    }
+    else{
+
+        bg = "sprites/bg2.jpg"
+    }
+     backgroundImg = loadImage(bg)
+    //var hour = datetime.slice(11,13)
+
 }

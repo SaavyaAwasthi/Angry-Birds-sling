@@ -133,7 +133,7 @@ function keyPressed(){
             select.play()
 
             Matter.Body.setPosition(bird_arr[bird_arr.length - 1].body, {x:100, y: 50});
-            slingshot.attach(bird_arr[bird_arr.length - 1])
+            slingshot.attach(bird_arr[bird_arr.length - 1].body)
 
             gameState = "on_sling"
        }
